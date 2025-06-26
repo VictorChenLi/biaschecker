@@ -1,3 +1,13 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+/* Custom styles for the language toggle */
+.dot {
+  transition: transform 0.3s ease;
+}
+
+/* Ensure proper font loading */
+body {
+  font-family: 'Inter', sans-serif;
+}
