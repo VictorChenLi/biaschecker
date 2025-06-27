@@ -4,10 +4,15 @@ import { getAuth, signInAnonymously, onAuthStateChanged } from 'firebase/auth';
 import { getFirestore, collection, addDoc, query, onSnapshot, orderBy } from 'firebase/firestore';
 
 // --- Firebase Configuration ---
-// This configuration is automatically provided by the environment.
-const firebaseConfig = typeof __firebase_config !== 'undefined'
-    ? JSON.parse(__firebase_config)
-    : { apiKey: "your-api-key", authDomain: "your-auth-domain", projectId: "your-project-id" };
+const firebaseConfig = {
+  apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
+  authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN,
+  projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID,
+  storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET,
+  messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID,
+  appId: import.meta.env.VITE_FIREBASE_APP_ID,
+  measurementId: import.meta.env.VITE_FIREBASE_MEASUREMENT_ID
+};
 
 // --- Initialize Firebase ---
 const app = initializeApp(firebaseConfig);
@@ -132,7 +137,6 @@ const App = () => {
 
 
     const fetchPerspectives = async () => {
-        // ... (rest of the fetchPerspectives function remains the same, with one addition)
         setArticleSummary('');
         setBiasScore(null);
         setLeftPerspective('');
@@ -141,13 +145,16 @@ const App = () => {
         setIsLoading(true);
 
         try {
-            const promptLanguage = uiLanguage === 'zh' ? 'Chinese' : 'English';
+            // Language-specific instruction
+            const langInstruction = uiLanguage === 'zh'
+                ? '请用中文作为一名资深政治分析师，'
+                : 'As an expert political analyst, please respond in English. ';
             let finalPrompt;
             let responseSchema;
             let isUrl = /^(https?:\/\/)?([\w.-]+)\.([a-z]{2,6}\.?)(\/[\w.-]*)*\/?$/i.test(topic);
 
             if (isUrl) {
-                responseSchema = { /* ... schema with summary and biasScore ... */ 
+                responseSchema = {
                     type: 'OBJECT',
                     properties: {
                         articleSummary: { type: 'STRING' },
@@ -166,14 +173,14 @@ const App = () => {
                     tempDiv.innerHTML = htmlContent;
                     tempDiv.querySelectorAll('script, style').forEach(el => el.remove());
                     const textContent = (tempDiv.textContent || tempDiv.innerText || "").replace(/\s\s+/g, ' ').trim().substring(0, 5000);
-                    finalPrompt = `Act as an expert political analyst... Article Text: "${textContent}"...`; // Abridged for brevity
+                    finalPrompt = `${langInstruction}Analyze the following article and provide a summary, a bias score (-100 to 100), and concise left- and right-leaning perspectives. Article Text: "${textContent}"`;
                 } catch (err) {
                     setError(t.urlFetchError);
                     setIsLoading(false);
                     return;
                 }
             } else {
-                responseSchema = { /* ... schema without summary and biasScore ... */ 
+                responseSchema = {
                     type: 'OBJECT',
                     properties: {
                         leftPerspective: { type: 'OBJECT', properties: { summary: { type: 'STRING' } }, required: ['summary'] },
@@ -181,14 +188,14 @@ const App = () => {
                     },
                     required: ['leftPerspective', 'rightPerspective']
                 };
-                finalPrompt = `Act as an expert political analyst... Topic: "${topic}"...`; // Abridged for brevity
+                finalPrompt = `${langInstruction}Analyze the following topic and provide concise left- and right-leaning perspectives. Topic: "${topic}"`;
             }
 
             const payload = {
                 contents: [{ role: "user", parts: [{ text: finalPrompt }] }],
                 generationConfig: { responseMimeType: "application/json", responseSchema },
             };
-            const apiKey = "";
+            const apiKey = import.meta.env.VITE_GEMINI_API_KEY;
             const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
             const response = await fetch(apiUrl, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
             const result = await response.json();

@@ -95,13 +95,16 @@ The application will be available at **http://localhost:5173**
 
 ```
 biaschecker/
-├── app.jsx             # Main React application
-├── index.html          # HTML entry point
-├── package.json        # Dependencies and scripts
-├── tailwind.config.js  # Tailwind CSS configuration
-├── .env               # Environment variables (not in git)
-├── .gitignore         # Git ignore rules
-└── README.md          # This file
+├── src/
+│   ├── App.jsx           # Main React application
+│   ├── main.jsx          # Application entry point
+│   └── index.css         # Global styles
+├── index.html            # HTML entry point
+├── package.json          # Dependencies and scripts
+├── tailwind.config.js    # Tailwind CSS configuration
+├── .env                  # Environment variables (not in git)
+├── .gitignore           # Git ignore rules
+└── README.md            # This file
 ```
 
 ## Development Commands
@@ -139,7 +142,7 @@ nvm use 20
 ### JSX Syntax Errors
 If you get JSX parsing errors:
 - Ensure your React files have `.jsx` extension
-- The main file should be `app.jsx` (not `app.js`)
+- The main file should be `src/App.jsx`
 
 ### Firebase Connection Issues
 - Verify your `.env` file has correct Firebase credentials
